@@ -54,6 +54,6 @@ async def test_telegram_alert(symbol: str, chat_id: str):
     else:
         return {"status": "error", "message": "Failed to send message. Check the uvicorn terminal."}
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
