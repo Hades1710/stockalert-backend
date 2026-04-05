@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import pytz
 from app.database import supabase
@@ -93,8 +93,15 @@ async def poll_market_data():
                             admin_chat = admin_res.data[0].get("telegram_chat_id")
                             if admin_chat:
                                 await send_telegram_alert(admin_chat, "🚨 <b>SYSTEM CRIT</b> 🚨\n\nFinnhub API has violently dropped 3 consecutive requests. Check system status immediately.")
+                                
+            # 3. Autonomous Database Maintenance (Delete alert logs older than 30 days)
+            try:
+                thirty_days_ago = (datetime.now(pytz.utc) - timedelta(days=30)).isoformat()
+                # Use Supabase REST filter `.lt()` strictly deleting anything older than 30 days to save 500MB free-tier limit
+                supabase.table("alert_log").delete().lt("triggered_at", thirty_days_ago).execute()
+            except Exception as cleanup_err:
+                logger.error(f"Failed autonomous DB cleanup: {cleanup_err}")
 
-            
             # Sleep for 15 minutes (900 seconds)
             await asyncio.sleep(900)
             

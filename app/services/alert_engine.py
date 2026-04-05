@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from app.database import supabase
 from app.services.notifications.telegram import send_telegram_alert
 
@@ -77,6 +78,10 @@ async def evaluate_rules_for_symbol(symbol: str, quote_data: dict):
                                     supabase.table("alert_log").update({"notified": True}).eq("id", log_id).execute()
                 except Exception as db_err:
                     logger.error(f"🚨 Supabase connection DROPPED mid-poll for user {user_id}: {db_err} 🚨")
+                    
+            # ANTI-SPAM THROTTLE: Respect Telegram's 30 msg/sec strict global limit rules
+            # Prevents 429 Too Many Requests if 100 users immediately trigger rules on AAPL
+            await asyncio.sleep(0.05)
                 
     except Exception as e:
         logger.error(f"Error evaluating rules for {symbol}: {e}")

@@ -24,6 +24,17 @@ async def send_telegram_alert(chat_id: str, message: str) -> bool:
             response.raise_for_status()
             logger.info(f"Telegram alert sent successfully to chat_id {chat_id}")
             return True
+        except httpx.HTTPStatusError as http_err:
+            if http_err.response.status_code == 403:
+                logger.warning(f"🚨 Bot BLOCKED by user {chat_id} (HTTP 403). Deactivating account instantly...")
+                try:
+                    from app.database import supabase
+                    supabase.table("profiles").update({"telegram_enabled": False}).eq("telegram_chat_id", chat_id).execute()
+                except Exception as block_err:
+                    logger.error(f"Failed to securely deactivate user {chat_id} in DB: {block_err}")
+            
+            logger.error(f"HTTP Error sending Telegram alert to {chat_id}: {http_err}")
+            return False
         except Exception as e:
             logger.error(f"Failed to send Telegram alert: {e}")
             return False
