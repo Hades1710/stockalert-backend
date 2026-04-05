@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime
+import time
 import pytz
 from app.database import supabase
 from app.services.market_data import fetch_realtime_quote
@@ -52,15 +53,47 @@ async def poll_market_data():
             logger.info(f"Unique symbols to track: {symbols}")
             
             # 2. Iterate each symbol and fetch market data
+            finnhub_strikes = 0
+            
             for symbol in symbols:
                 quote = await fetch_realtime_quote(symbol)
                 
                 if quote:
-                    logger.info(f"Fetched quote for {symbol}: {quote.get('c')}")
-                    # Evaluate alert rules
+                    finnhub_strikes = 0  # Reset strike counter on success
+                    
+                    current_price = quote.get('c')
+                    trade_time = quote.get('t', 0)
+                    
+                    # Security Validation 1: Null/Negative LTP Protection
+                    if not current_price or float(current_price) <= 0:
+                        logger.warning(f"Dropping {symbol}: Finnhub returned null or negative price.")
+                        continue
+                        
+                    # Security Validation 2: Stale Data Protection (> 20 mins)
+                    current_timestamp = int(time.time())
+                    if (current_timestamp - trade_time) > 1200:
+                        logger.warning(f"Dropping {symbol}: Finnhub timestamp is entirely stale (>20m).")
+                        continue
+                        
+                    logger.info(f"Fetched verified quote for {symbol}: ${current_price}")
+                    # Evaluate alert rules safely
                     await evaluate_rules_for_symbol(symbol, quote)
                 else:
                     logger.warning(f"Skipping {symbol} due to missing quote data")
+                    finnhub_strikes += 1
+                    
+                    # Security Validation 3: API Global Outage Strike Counter
+                    if finnhub_strikes == 3:
+                        logger.error("🚨 3 CONSECUTIVE DROPS: Finnhub appears globally down!")
+                        from app.services.notifications.telegram import send_telegram_alert
+                        
+                        # Fetch the absolute first active profile to serve as the admin ping
+                        admin_res = supabase.table("profiles").select("telegram_chat_id").not_is("telegram_chat_id", "null").limit(1).execute()
+                        if admin_res.data:
+                            admin_chat = admin_res.data[0].get("telegram_chat_id")
+                            if admin_chat:
+                                await send_telegram_alert(admin_chat, "🚨 <b>SYSTEM CRIT</b> 🚨\n\nFinnhub API has violently dropped 3 consecutive requests. Check system status immediately.")
+
             
             # Sleep for 15 minutes (900 seconds)
             await asyncio.sleep(900)
