@@ -53,18 +53,30 @@ async def evaluate_rules_for_symbol(symbol: str, quote_data: dict):
                     "notified": False
                 }
 
-                # Try fetching user profile to dispatch to Telegram
-                profile_res = supabase.table("profiles").select("telegram_chat_id, telegram_enabled").eq("id", user_id).execute()
-                if profile_res.data and len(profile_res.data) > 0:
-                    profile = profile_res.data[0]
-                    chat_id = profile.get("telegram_chat_id")
-                    if profile.get("telegram_enabled") and chat_id:
-                        success = await send_telegram_alert(chat_id, f"🚨 <b>StockAlert</b> 🚨\n\n{msg}")
-                        if success:
-                            log_data["notified"] = True
+                # Mid-poll database safety wrap
+                try:
+                    # 1. ALWAYS write the alert log first to secure the event
+                    log_res = supabase.table("alert_log").insert(log_data).execute()
+                    
+                    if log_res.data:
+                        # Grab the generated UUID of the log
+                        log_id = log_res.data[0].get('id')
+                        
+                        # 2. Try fetching the user profile for Telegram dispatch
+                        profile_res = supabase.table("profiles").select("telegram_chat_id, telegram_enabled").eq("id", user_id).execute()
+                        if profile_res.data and len(profile_res.data) > 0:
+                            profile = profile_res.data[0]
+                            chat_id = profile.get("telegram_chat_id")
                             
-                # Write to alert_log
-                supabase.table("alert_log").insert(log_data).execute()
+                            if profile.get("telegram_enabled") and chat_id:
+                                # 3. Send the HTTP request
+                                success = await send_telegram_alert(chat_id, f"🚨 <b>StockAlert</b> 🚨\n\n{msg}")
+                                
+                                # 4. Mark log as explicitly notified
+                                if success and log_id:
+                                    supabase.table("alert_log").update({"notified": True}).eq("id", log_id).execute()
+                except Exception as db_err:
+                    logger.error(f"🚨 Supabase connection DROPPED mid-poll for user {user_id}: {db_err} 🚨")
                 
     except Exception as e:
         logger.error(f"Error evaluating rules for {symbol}: {e}")

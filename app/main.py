@@ -5,6 +5,7 @@ from app.routers import auth, watchlist, notifications
 from app.tasks.polling import poll_market_data
 from app.services.market_data import fetch_realtime_quote, fetch_dividends, fetch_stock_splits
 from app.services.notifications.telegram import send_telegram_alert
+from app.database import supabase
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -56,4 +57,10 @@ async def test_telegram_alert(symbol: str, chat_id: str):
 
 @app.api_route("/health", methods=["GET", "HEAD"])
 def health():
-    return {"status": "ok"}
+    try:
+        # Heartbeat ping to keep Supabase free tier from auto-pausing
+        supabase.table("system_health").select("*").limit(1).execute()
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        # If DB drops, UptimeRobot will still get 200 OK but we can see degradation
+        return {"status": "degraded", "database_error": str(e)}
