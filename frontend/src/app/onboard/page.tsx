@@ -35,7 +35,7 @@ function StepTelegram({ token, onComplete }: { token: string; onComplete: () => 
   const [code, setCode] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
   const [status, setStatus] = useState<'waiting' | 'verified'>('waiting')
-  const BOT_NAME = 'StockAlertNotifBot' // update with your actual bot username
+  const BOT_NAME = 'stock_alert_1710bot' // updated with actual bot username
 
   const generateCode = async () => {
     setGenerating(true)
