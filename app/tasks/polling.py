@@ -101,6 +101,12 @@ async def poll_market_data():
                 supabase.table("alert_log").delete().lt("triggered_at", thirty_days_ago).execute()
             except Exception as cleanup_err:
                 logger.error(f"Failed autonomous DB cleanup: {cleanup_err}")
+                
+            # 4. Update Engine Heartbeat (Powers the /health/polling UX endpoint)
+            try:
+                supabase.table("system_health").update({"last_check": "now()"}).eq("id", 1).execute()
+            except Exception as hb_err:
+                logger.error(f"Failed to update engine heartbeat: {hb_err}")
 
             # Sleep for 15 minutes (900 seconds)
             await asyncio.sleep(900)

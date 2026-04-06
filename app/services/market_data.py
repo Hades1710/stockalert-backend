@@ -24,6 +24,31 @@ async def fetch_realtime_quote(symbol: str) -> dict:
             logger.error(f"Error fetching real-time quote for {symbol}: {e}")
             return {}
 
+async def fetch_symbol_search(query: str) -> list:
+    if not settings.FINNHUB_API_KEY:
+        return []
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                f"{FINNHUB_BASE}/search",
+                params={"q": query, "token": settings.FINNHUB_API_KEY}
+            )
+            response.raise_for_status()
+            data = response.json().get("result", [])
+            # Strictly filter for Common Stock natively preventing foreign stocks (dots in symbol)
+            return [
+                {
+                    "symbol": item.get("symbol"),
+                    "name": item.get("description"),
+                    "type": item.get("type")
+                }
+                for item in data if item.get("type") == "Common Stock" and "." not in item.get("symbol", ".")
+            ]
+        except Exception as e:
+            logger.error(f"Error searching symbol {query}: {e}")
+            return []
+
 async def fetch_earnings_calendar(start_date: str, end_date: str) -> list:
     if not settings.FINNHUB_API_KEY:
         return []

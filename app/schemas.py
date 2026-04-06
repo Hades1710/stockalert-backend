@@ -17,7 +17,10 @@ class WatchlistItem(BaseModel):
     added_at: datetime
 
 class AlertRuleCreate(BaseModel):
-    rule_type: str  # e.g., 'price_threshold', '52w_high', 'volume_spike'
+    rule_type: str
+    threshold: float
+
+class AlertRuleUpdate(BaseModel):
     threshold: float
 
 class AlertRule(BaseModel):

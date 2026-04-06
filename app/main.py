@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 from contextlib import asynccontextmanager
-from app.routers import auth, watchlist, notifications
+from app.routers import auth, watchlist, notifications, market, alerts
+from app.routers import telegram_webhook
 from app.tasks.polling import poll_market_data
 from app.services.market_data import fetch_realtime_quote, fetch_dividends, fetch_stock_splits
 from app.services.notifications.telegram import send_telegram_alert
@@ -23,9 +25,24 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="StockAlert API", version="0.1.0", lifespan=lifespan)
 
+# CORS: Allow the Next.js frontend to call this backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",       # Local dev
+        "https://*.vercel.app",        # Vercel preview deployments
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(watchlist.router, prefix="/watchlist", tags=["Watchlist"])
 app.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+app.include_router(market.router, prefix="/market", tags=["Market (Phase 3)"])
+app.include_router(alerts.router, prefix="/alerts", tags=["Alerts Feed (Phase 3)"])
+app.include_router(telegram_webhook.router, prefix="/telegram", tags=["Telegram Webhook"])
 
 @app.get("/test/market-data/{symbol}", tags=["Testing"])
 async def test_market_data(symbol: str):
@@ -55,7 +72,7 @@ async def test_telegram_alert(symbol: str, chat_id: str):
     else:
         return {"status": "error", "message": "Failed to send message. Check the uvicorn terminal."}
 
-@app.api_route("/health", methods=["GET", "HEAD"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["Health"])
 def health():
     try:
         # Heartbeat ping to keep Supabase free tier from auto-pausing
@@ -64,3 +81,13 @@ def health():
     except Exception as e:
         # If DB drops, UptimeRobot will still get 200 OK but we can see degradation
         return {"status": "degraded", "database_error": str(e)}
+
+@app.get("/health/polling", tags=["Health"])
+def polling_status():
+    try:
+        response = supabase.table("system_health").select("last_check").eq("id", 1).execute()
+        if response.data:
+            return {"status": "ok", "last_poll": response.data[0].get("last_check")}
+        return {"status": "error", "message": "No heartbeat record found"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
