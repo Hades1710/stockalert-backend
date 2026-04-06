@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     
     # Telegram Bot
     TELEGRAM_BOT_TOKEN: Optional[str] = None
+
+    # Secret token to authenticate the cron trigger endpoint
+    # Set this in Render environment variables and in cron-job.org request headers
+    CRON_SECRET: Optional[str] = None
     
     # Environment variables are loaded from the .env file
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
