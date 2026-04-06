@@ -49,6 +49,7 @@ async def evaluate_rules_for_symbol(symbol: str, quote_data: dict):
                 log_data = {
                     "user_id": user_id,
                     "rule_id": rule_id,
+                    "rule_type": rule_type,
                     "symbol": symbol,
                     "message": msg,
                     "notified": False
