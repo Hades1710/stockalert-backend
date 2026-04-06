@@ -29,8 +29,10 @@ app = FastAPI(title="StockAlert API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",       # Local dev
-        "https://*.vercel.app",        # Vercel preview deployments
+        "http://localhost:3000",                          # Local dev
+        "https://stockalert-backend-82o8.onrender.com",  # Render backend (for Swagger testing)
+        "https://stockalert-backend.vercel.app",         # Vercel frontend
+        "https://*.vercel.app",                          # Vercel preview deployments
     ],
     allow_credentials=True,
     allow_methods=["*"],
