@@ -185,8 +185,16 @@ export default function PricingPage() {
 
         </div>
 
-        <div style={{ marginTop: '4rem', color: 'var(--text-muted)', fontSize: '13px' }}>
-          🔒 Secure payments securely processed globally by Dodo Payments.
+        <div style={{ marginTop: '3rem', color: 'var(--text-muted)', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-success)', fontWeight: 600 }}>
+            🛡️ 7-Day Money-Back Guarantee
+          </div>
+          <div>
+            Questions about billing? Visit our <Link href="/refunds" style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>Refund Policy</Link> or email support.
+          </div>
+          <p style={{ marginTop: '1rem', opacity: 0.6 }}>
+            🔒 Transactions secured by Dodo Payments.
+          </p>
         </div>
       </div>
     </div>
