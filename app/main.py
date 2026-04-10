@@ -16,7 +16,7 @@ Architecture note:
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import auth, watchlist, notifications, market, alerts
+from app.routers import auth, watchlist, notifications, market, alerts, payments
 from app.routers import telegram_webhook
 from app.tasks.polling import run_single_poll_cycle
 from app.services.market_data import fetch_realtime_quote, fetch_dividends, fetch_stock_splits
@@ -54,6 +54,7 @@ app.include_router(notifications.router,    prefix="/notifications", tags=["Noti
 app.include_router(market.router,           prefix="/market",        tags=["Market"])
 app.include_router(alerts.router,           prefix="/alerts",        tags=["Alerts"])
 app.include_router(telegram_webhook.router, prefix="/telegram",      tags=["Telegram Webhook"])
+app.include_router(payments.router,         prefix="",               tags=["Payments"])
 
 # ─── Cron Trigger Endpoint ─────────────────────────────────────────────────────
 @app.post("/internal/trigger-poll", tags=["Internal / Cron"])

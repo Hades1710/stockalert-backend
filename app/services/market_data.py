@@ -27,6 +27,60 @@ def set_cached_quote(symbol: str, data: dict) -> None:
     """Store a fresh quote in the in-memory cache."""
     QUOTE_CACHE[symbol] = {"data": data, "fetched_at": time.time()}
 
+# ─── In-Memory Cache for Daily Metrics ──────────────────────────────────────────
+# 52-week highs/lows barely change intra-day. Cache them for 12 hours.
+METRICS_CACHE: dict[str, dict] = {}
+METRICS_TTL_SECONDS = 43200
+
+def get_cached_metrics(symbol: str) -> dict | None:
+    entry = METRICS_CACHE.get(symbol)
+    if entry and (time.time() - entry["fetched_at"]) < METRICS_TTL_SECONDS:
+        return entry["data"]
+    return None
+
+def set_cached_metrics(symbol: str, data: dict) -> None:
+    METRICS_CACHE[symbol] = {"data": data, "fetched_at": time.time()}
+
+# ─── In-Memory Cache for Analyst Recommendations ──────────────────────────────
+# Analyst ratings only change infrequently, so cache for 24 hours (86400s)
+RECOMMENDATION_CACHE: dict[str, list] = {}
+RECOMMENDATION_TTL_SECONDS = 86400
+
+def get_cached_recommendation(symbol: str) -> list | None:
+    entry = RECOMMENDATION_CACHE.get(symbol)
+    if entry and (time.time() - entry["fetched_at"]) < RECOMMENDATION_TTL_SECONDS:
+        return entry["data"]
+    return None
+
+def set_cached_recommendation(symbol: str, data: list) -> None:
+    RECOMMENDATION_CACHE[symbol] = {"data": data, "fetched_at": time.time()}
+
+# ─── In-Memory Cache for Insider Sentiment ────────────────────────────────────
+INSIDER_CACHE: dict[str, list] = {}
+INSIDER_TTL_SECONDS = 86400
+
+def get_cached_insider(symbol: str) -> list | None:
+    entry = INSIDER_CACHE.get(symbol)
+    if entry and (time.time() - entry["fetched_at"]) < INSIDER_TTL_SECONDS:
+        return entry["data"]
+    return None
+
+def set_cached_insider(symbol: str, data: list) -> None:
+    INSIDER_CACHE[symbol] = {"data": data, "fetched_at": time.time()}
+
+# ─── In-Memory Cache for Earnings Calendar ────────────────────────────────────
+EARNINGS_CACHE: dict[str, list] = {}
+EARNINGS_TTL_SECONDS = 86400
+
+def get_cached_earnings(symbol: str) -> list | None:
+    entry = EARNINGS_CACHE.get(symbol)
+    if entry and (time.time() - entry["fetched_at"]) < EARNINGS_TTL_SECONDS:
+        return entry["data"]
+    return None
+
+def set_cached_earnings(symbol: str, data: list) -> None:
+    EARNINGS_CACHE[symbol] = {"data": data, "fetched_at": time.time()}
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def fetch_realtime_quote(symbol: str) -> dict:
@@ -55,6 +109,29 @@ async def fetch_realtime_quote(symbol: str) -> dict:
             logger.error(f"Error fetching real-time quote for {symbol}: {e}")
             return {}
 
+async def fetch_basic_metrics(symbol: str) -> dict:
+    """Fetches 52-week high, low, and 10-day volume. Heavily cached."""
+    if not settings.FINNHUB_API_KEY:
+         return {}
+         
+    cached = get_cached_metrics(symbol)
+    if cached: return cached
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                f"{FINNHUB_BASE}/stock/metric",
+                params={"symbol": symbol, "metric": "all", "token": settings.FINNHUB_API_KEY}
+            )
+            response.raise_for_status()
+            data = response.json().get("metric", {})
+            if data:
+                set_cached_metrics(symbol, data)
+            return data
+        except Exception as e:
+            logger.error(f"Error fetching metrics for {symbol}: {e}")
+            return {}
+
 async def fetch_symbol_search(query: str) -> list:
     if not settings.FINNHUB_API_KEY:
         return []
@@ -80,19 +157,84 @@ async def fetch_symbol_search(query: str) -> list:
             logger.error(f"Error searching symbol {query}: {e}")
             return []
 
-async def fetch_earnings_calendar(start_date: str, end_date: str) -> list:
+async def fetch_analyst_recommendations(symbol: str) -> list:
     if not settings.FINNHUB_API_KEY:
         return []
+    
+    cached = get_cached_recommendation(symbol)
+    if cached:
+        return cached
+
     async with httpx.AsyncClient() as client:
         try:
+            logger.info(f"Cache MISS — calling Finnhub for analyst ratings: {symbol}")
             response = await client.get(
-                f"{FINNHUB_BASE}/calendar/earnings",
-                params={"from": start_date, "to": end_date, "token": settings.FINNHUB_API_KEY}
+                f"{FINNHUB_BASE}/stock/recommendation",
+                params={"symbol": symbol, "token": settings.FINNHUB_API_KEY}
             )
             response.raise_for_status()
-            return response.json().get("earningsCalendar", [])
+            data = response.json()
+            if data:
+                set_cached_recommendation(symbol, data)
+            return data
         except Exception as e:
-            logger.error(f"Error fetching earnings calendar: {e}")
+            logger.error(f"Error fetching analyst recommendations for {symbol}: {e}")
+            return []
+
+async def fetch_insider_sentiment(symbol: str) -> list:
+    if not settings.FINNHUB_API_KEY:
+        return []
+        
+    cached = get_cached_insider(symbol)
+    if cached:
+        return cached
+
+    from datetime import datetime, timedelta
+    t_start = (datetime.now() - timedelta(days=180)).strftime("%Y-%m-%d")
+    t_end = datetime.now().strftime("%Y-%m-%d")
+
+    async with httpx.AsyncClient() as client:
+        try:
+            logger.info(f"Cache MISS — calling Finnhub for insider sentiment: {symbol}")
+            response = await client.get(
+                f"{FINNHUB_BASE}/stock/insider-sentiment",
+                params={"symbol": symbol, "from": t_start, "to": t_end, "token": settings.FINNHUB_API_KEY}
+            )
+            response.raise_for_status()
+            data = response.json().get("data", [])
+            if data:
+                set_cached_insider(symbol, data)
+            return data
+        except Exception as e:
+            logger.error(f"Error fetching insider sentiment for {symbol}: {e}")
+            return []
+
+async def fetch_earnings_calendar(symbol: str) -> list:
+    if not settings.FINNHUB_API_KEY:
+        return []
+        
+    cached = get_cached_earnings(symbol)
+    if cached:
+        return cached
+
+    from datetime import datetime, timedelta
+    t_start = datetime.now().strftime("%Y-%m-%d")
+    t_end = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+
+    async with httpx.AsyncClient() as client:
+        try:
+            logger.info(f"Cache MISS — calling Finnhub for earnings calendar: {symbol}")
+            response = await client.get(
+                f"{FINNHUB_BASE}/calendar/earnings",
+                params={"symbol": symbol, "from": t_start, "to": t_end, "token": settings.FINNHUB_API_KEY}
+            )
+            response.raise_for_status()
+            data = response.json().get("earningsCalendar", [])
+            if data:
+                set_cached_earnings(symbol, data)
+            return data
+        except Exception as e:
+            logger.error(f"Error fetching earnings calendar for {symbol}: {e}")
             return []
 
 async def fetch_dividends(symbol: str) -> list:

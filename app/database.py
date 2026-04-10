@@ -16,8 +16,8 @@ def get_supabase() -> Client:
         return DummySupabase()
         
     try:
-        url: str = settings.SUPABASE_URL
-        key: str = settings.SUPABASE_KEY
+        url: str = settings.SUPABASE_URL.strip()
+        key: str = settings.SUPABASE_KEY.strip()
         supabase: Client = create_client(url, key)
         return supabase
     except Exception as e:

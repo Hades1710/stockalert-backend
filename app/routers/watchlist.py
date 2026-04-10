@@ -18,6 +18,16 @@ def get_watchlist(current_user: UserProfile = Depends(get_current_user)):
 async def add_to_watchlist(item: WatchlistAddRequest, current_user: UserProfile = Depends(get_current_user)):
     try:
         symbol = item.symbol.upper()
+        tier = current_user.tier
+        
+        # Enforce Stock Count Limits based on Tier
+        count_res = supabase.table("watchlist").select("id", count="exact").eq("user_id", str(current_user.id)).execute()
+        stock_count = count_res.count if hasattr(count_res, 'count') and count_res.count is not None else len(count_res.data)
+        
+        if tier == "free" and stock_count >= 3:
+            raise HTTPException(status_code=403, detail="Free tier is limited to 3 stocks. Upgrade to Plus or Pro!")
+        elif tier == "plus" and stock_count >= 15:
+            raise HTTPException(status_code=403, detail="Plus tier is limited to 15 stocks. Upgrade to Pro for unlimited!")
         
         # 3B: Symbol Validation mathematically restricting bad Finnhub returns
         from app.services.market_data import fetch_realtime_quote
@@ -39,8 +49,6 @@ async def add_to_watchlist(item: WatchlistAddRequest, current_user: UserProfile 
         # 3C: Default Rules bulk generation for UX mapping
         default_rules = [
             {"user_id": str(current_user.id), "symbol": symbol, "rule_type": "price_threshold", "threshold": 5.0},
-            {"user_id": str(current_user.id), "symbol": symbol, "rule_type": "52w_high_low", "threshold": 1.0},
-            {"user_id": str(current_user.id), "symbol": symbol, "rule_type": "unusual_volume", "threshold": 200.0}
         ]
         supabase.table("alert_rules").insert(default_rules).execute()
         
@@ -71,6 +79,16 @@ def get_alert_rules(symbol: str, current_user: UserProfile = Depends(get_current
 @router.post("/{symbol}/rules", response_model=AlertRule)
 def add_alert_rule(symbol: str, rule: AlertRuleCreate, current_user: UserProfile = Depends(get_current_user)):
     try:
+        tier = current_user.tier
+        
+        pro_only_rules = ["insider_buying", "analyst_upgrade"]
+        plus_rules = ["earnings_alert", "breaking_news", "52w_high_low"] # "unusual_volume"
+
+        if rule.rule_type in pro_only_rules and tier != "pro":
+            raise HTTPException(status_code=403, detail=f"{rule.rule_type.title().replace('_', ' ')} is a Pro-tier exclusive feature.")
+        if rule.rule_type in plus_rules and tier not in ["plus", "pro"]:
+            raise HTTPException(status_code=403, detail=f"{rule.rule_type.title().replace('_', ' ')} is available on Plus and Pro tiers.")
+
         new_rule = {
             "user_id": str(current_user.id),
             "symbol": symbol.upper(),

@@ -16,8 +16,9 @@ interface AlertLog {
 
 const RULE_ICONS: Record<string, string> = {
   price_threshold: '💹',
+  price_breakout: '🎯',
   '52w_high_low': '📊',
-  unusual_volume: '🔊',
+  // unusual_volume: '🔊',
 }
 
 function formatDate(iso: string): string {

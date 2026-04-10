@@ -6,6 +6,7 @@ from uuid import UUID
 class UserProfile(BaseModel):
     id: UUID
     email: Optional[str] = None
+    tier: str = "free"
 
 class WatchlistAddRequest(BaseModel):
     symbol: str

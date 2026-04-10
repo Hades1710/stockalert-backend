@@ -11,8 +11,13 @@ interface AlertRule { id: string; rule_type: string; threshold: number }
 
 const RULE_META: Record<string, { label: string; icon: string; unit: string; desc: string }> = {
   price_threshold: { label: 'Price Change Alert', icon: '💹', unit: '%', desc: 'Alert when daily price moves by this %' },
-  '52w_high_low':  { label: '52-Week High/Low',   icon: '📊', unit: '%', desc: 'Alert when price hits yearly extremes' },
-  unusual_volume:  { label: 'Unusual Volume',      icon: '🔊', unit: '%', desc: 'Alert when volume exceeds this % of average' },
+  price_breakout:  { label: 'Price Breakout',     icon: '🎯', unit: '$', desc: 'Alert when price crosses specific target' },
+  '52w_high_low':  { label: '52-Week High/Low',   icon: '📊', unit: '%', desc: 'Alert when price hits yearly extremes (Plus)' },
+  // unusual_volume:  { label: 'Unusual Volume',      icon: '🔊', unit: '%', desc: 'Alert when volume exceeds this % of average' },
+  analyst_upgrade: { label: 'Analyst Upgrades',    icon: '📈', unit: '', desc: 'Alert when a bank upgrades this stock' },
+  insider_buying:  { label: 'Insider Trading',     icon: '🕵️', unit: '', desc: 'Alert when executives buy/sell shares' },
+  earnings_alert:  { label: 'Earnings Upcoming',   icon: '📅', unit: 'Days', desc: 'Alert days before earnings report' },
+  breaking_news:   { label: 'Breaking News',       icon: '📰', unit: '', desc: 'Alert on major news catalysts' },
 }
 
 // ─── Inline editable threshold row ───────────────────────────────────
@@ -63,42 +68,44 @@ function RuleRow({ rule, token, onDelete }: { rule: AlertRule; token: string; on
 
       {/* Inline threshold editor */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        {editing ? (
-          <>
-            <input
-              type="number"
-              value={value}
-              onChange={e => setValue(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
-              autoFocus
+        {meta.unit !== '' && (
+          editing ? (
+            <>
+              <input
+                type="number"
+                value={value}
+                onChange={e => setValue(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
+                autoFocus
+                style={{
+                  background: 'var(--bg-surface)', border: '1px solid var(--accent-primary)',
+                  color: 'var(--text-primary)', borderRadius: '6px',
+                  padding: '4px 8px', width: '70px', fontSize: '14px',
+                }}
+              />
+              <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{meta.unit}</span>
+              <button onClick={save} disabled={saving} className="btn-primary" style={{ padding: '4px 12px', fontSize: '12px' }}>
+                {saving ? '...' : 'Save'}
+              </button>
+              <button onClick={() => setEditing(false)} className="btn-secondary" style={{ padding: '4px 10px', fontSize: '12px' }}>✕</button>
+            </>
+          ) : (
+            <div
+              onClick={() => setEditing(true)}
+              title="Click to edit"
               style={{
-                background: 'var(--bg-surface)', border: '1px solid var(--accent-primary)',
-                color: 'var(--text-primary)', borderRadius: '6px',
-                padding: '4px 8px', width: '70px', fontSize: '14px',
+                background: 'rgba(99,102,241,0.12)', color: 'var(--accent-primary)',
+                border: '1px solid rgba(99,102,241,0.2)', borderRadius: '999px',
+                padding: '4px 14px', fontSize: '13px', fontWeight: 700,
+                cursor: 'pointer', transition: 'all 0.2s',
+                outline: saved ? '2px solid var(--accent-success)' : 'none',
               }}
-            />
-            <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{meta.unit}</span>
-            <button onClick={save} disabled={saving} className="btn-primary" style={{ padding: '4px 12px', fontSize: '12px' }}>
-              {saving ? '...' : 'Save'}
-            </button>
-            <button onClick={() => setEditing(false)} className="btn-secondary" style={{ padding: '4px 10px', fontSize: '12px' }}>✕</button>
-          </>
-        ) : (
-          <div
-            onClick={() => setEditing(true)}
-            title="Click to edit"
-            style={{
-              background: 'rgba(99,102,241,0.12)', color: 'var(--accent-primary)',
-              border: '1px solid rgba(99,102,241,0.2)', borderRadius: '999px',
-              padding: '4px 14px', fontSize: '13px', fontWeight: 700,
-              cursor: 'pointer', transition: 'all 0.2s',
-              outline: saved ? '2px solid var(--accent-success)' : 'none',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99,102,241,0.22)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(99,102,241,0.12)')}
-          >
-            {saved ? '✓ Saved' : `${value}${meta.unit}`}
-          </div>
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99,102,241,0.22)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(99,102,241,0.12)')}
+            >
+              {saved ? '✓ Saved' : `${value}${meta.unit}`}
+            </div>
+          )
         )}
       </div>
 
@@ -126,6 +133,13 @@ export default function StockDetailPage() {
   const [rules, setRules] = useState<AlertRule[]>([])
   const [removing, setRemoving] = useState(false)
 
+  // Add Rule state
+  const [showAddRule, setShowAddRule] = useState(false)
+  const [newRuleType, setNewRuleType] = useState('price_threshold')
+  const [newRuleThreshold, setNewRuleThreshold] = useState('5.0')
+  const [addingRule, setAddingRule] = useState(false)
+  const [addError, setAddError] = useState('')
+
   const loadRules = useCallback(async (tok: string) => {
     const res = await fetch(`${BACKEND}/watchlist/${symbol}/rules`, {
       headers: { Authorization: `Bearer ${tok}` }
@@ -151,6 +165,30 @@ export default function StockDetailPage() {
     setRemoving(true)
     await fetch(`${BACKEND}/watchlist/${symbol}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
     router.push('/dashboard')
+  }
+
+  const handleAddRule = async () => {
+    setAddError('')
+    const num = parseFloat(newRuleThreshold) || 1.0
+    setAddingRule(true)
+    try {
+      const res = await fetch(`${BACKEND}/watchlist/${symbol}/rules`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ rule_type: newRuleType, threshold: num })
+      })
+      if (!res.ok) {
+        const errData = await res.json()
+        setAddError(errData.detail || 'Failed to add rule')
+        return
+      }
+      await loadRules(token)
+      setShowAddRule(false)
+    } catch (e) {
+      setAddError('Network error')
+    } finally {
+      setAddingRule(false)
+    }
   }
 
   const isPositive = quote && quote.change_pct >= 0
@@ -223,6 +261,65 @@ export default function StockDetailPage() {
               ))}
             </div>
           )}
+          
+          <div style={{ marginTop: '1rem' }}>
+            {!showAddRule ? (
+              <button 
+                onClick={() => setShowAddRule(true)}
+                className="btn-secondary" 
+                style={{ padding: '8px 16px', fontSize: '13px' }}
+              >
+                + Add Rule
+              </button>
+            ) : (
+              <div style={{
+                background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-light)',
+                borderRadius: 'var(--radius-sm)', padding: '16px', marginTop: '8px'
+              }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px' }}>Create New Alert</h4>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <select 
+                    value={newRuleType} 
+                    onChange={e => setNewRuleType(e.target.value)}
+                    style={{
+                      background: 'var(--bg-surface)', border: '1px solid var(--border-light)',
+                      color: 'var(--text-primary)', padding: '8px', borderRadius: '6px', fontSize: '13px'
+                    }}
+                  >
+                    {Object.entries(RULE_META).map(([key, meta]) => (
+                      <option key={key} value={key}>{meta.icon} {meta.label}</option>
+                    ))}
+                  </select>
+                  
+                  {RULE_META[newRuleType]?.unit !== '' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <input 
+                        type="number" 
+                        value={newRuleThreshold} 
+                        onChange={e => setNewRuleThreshold(e.target.value)}
+                        style={{
+                          background: 'var(--bg-surface)', border: '1px solid var(--border-light)',
+                          color: 'var(--text-primary)', padding: '8px', width: '80px', borderRadius: '6px', fontSize: '13px'
+                        }} 
+                      />
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                        {RULE_META[newRuleType]?.unit}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <button onClick={handleAddRule} disabled={addingRule} className="btn-primary" style={{ padding: '8px 16px', fontSize: '13px' }}>
+                    {addingRule ? 'Saving...' : 'Save'}
+                  </button>
+                  <button onClick={() => setShowAddRule(false)} className="btn-secondary" style={{ padding: '8px 16px', fontSize: '13px' }}>
+                    Cancel
+                  </button>
+                </div>
+                {addError && <div style={{ color: 'var(--accent-danger)', fontSize: '13px', marginTop: '12px', fontWeight: 600 }}>{addError}</div>}
+              </div>
+            )}
+          </div>
+          
           <p style={{ marginTop: '0.75rem', fontSize: '12px', color: 'var(--text-muted)' }}>
             💡 Click a threshold badge to edit it inline. Press Enter or Save to confirm.
           </p>

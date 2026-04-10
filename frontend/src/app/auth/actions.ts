@@ -30,10 +30,19 @@ export async function signup(formData: FormData) {
     password: formData.get('password') as string,
   }
 
+  // Server-side validation fallback
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!data.email || !emailRegex.test(data.email)) {
+    redirect('/signup?error=Invalid email address')
+  }
+  if (!data.password || data.password.length < 8) {
+    redirect('/signup?error=Password must be at least 8 characters')
+  }
+
   const { error } = await supabase.auth.signUp(data)
 
   if (error) {
-    redirect('/signup?error=Could not create user')
+    redirect(`/signup?error=${encodeURIComponent(error.message)}`)
   }
 
   revalidatePath('/', 'layout')

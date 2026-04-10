@@ -281,11 +281,18 @@ export default function DashboardPage() {
   const loadWatchlist = useCallback(async (tok: string) => {
     try {
       const res = await fetch(`${BACKEND}/watchlist/`, { headers: { Authorization: `Bearer ${tok}` } })
-      const data: WatchlistItem[] = await res.json()
-      setWatchlist(data)
+      if (!res.ok) {
+        setWatchlist([])
+        return
+      }
+      const data = await res.json()
+      const wl = Array.isArray(data) ? data : []
+      setWatchlist(wl)
       // Immediately fire batch quote fetch
-      if (data.length > 0) loadQuotes(tok, data.map(w => w.symbol))
-    } catch {}
+      if (wl.length > 0) loadQuotes(tok, wl.map((w: WatchlistItem) => w.symbol))
+    } catch {
+      setWatchlist([])
+    }
   }, [loadQuotes])
 
   useEffect(() => {
@@ -319,6 +326,14 @@ export default function DashboardPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{email}</span>
+          
+          <Link href="/pricing" style={{
+            background: 'var(--accent-primary)', color: 'white', fontSize: '13px', textDecoration: 'none', fontWeight: 600,
+            padding: '6px 14px', borderRadius: '999px', transition: 'filter 0.2s',
+          }} onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.1)')} onMouseLeave={e => (e.currentTarget.style.filter = 'brightness(1)')}>
+            ⭐ Upgrade Tier
+          </Link>
+
           <Link href="/alerts" style={{
             color: 'var(--text-secondary)', fontSize: '13px', textDecoration: 'none', fontWeight: 500,
             padding: '6px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)',

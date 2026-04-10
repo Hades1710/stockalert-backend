@@ -264,8 +264,8 @@ function StepAddStock({ token, onComplete }: { token: string; onComplete: (symbo
 function StepRulesReview({ symbol, token, onComplete }: { symbol: string; token: string; onComplete: () => void }) {
   const rules = [
     { label: 'Price Change Alert', desc: 'Alert when price moves ±5% in a day', icon: '💹', value: '5%' },
-    { label: '52-Week High/Low', desc: 'Alert when price hits yearly extremes', icon: '📊', value: 'Enabled' },
-    { label: 'Unusual Volume', desc: 'Alert when trading volume is 2× normal', icon: '🔊', value: '200%' },
+    { label: 'Price Breakout', desc: 'Alert when price crosses specific dollar targets', icon: '🎯', value: 'Enabled' },
+    // { label: 'Unusual Volume', desc: 'Alert when trading volume is 2× normal', icon: '🔊', value: '200%' },
   ]
 
   return (
