@@ -40,7 +40,9 @@ app.add_middleware(
         "http://localhost:3000",                           # Local dev
         "https://stockalert-backend-82o8.onrender.com",   # Render backend (Swagger)
         "https://stockalert-backend.vercel.app",          # Vercel frontend
-        "https://*.vercel.app",                           # Vercel preview deployments
+        "https://*.vercel.app",
+        "https://stockping.me",
+        "https://www.stockping.me",                           # Vercel preview deployments
     ],
     allow_credentials=True,
     allow_methods=["*"],
