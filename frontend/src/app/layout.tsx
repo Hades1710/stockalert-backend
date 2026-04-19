@@ -3,8 +3,9 @@ import './globals.css';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'StockAlert Dashboard',
-  description: 'Premium Stock Alert Tracker',
+  title: 'StockAlert — Never Miss a Market Move',
+  description:
+    'Real-time US stock alerts delivered instantly to your Telegram. Track price changes, breakouts, 52-week highs and more. Free tier available forever.',
 };
 
 export default function RootLayout({
