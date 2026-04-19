@@ -73,7 +73,7 @@ export default function PricingPage() {
           onClick={() => router.push('/dashboard')}
           style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '20px' }}
         >←</button>
-        <h1 style={{ fontSize: '1.25rem', margin: 0 }}>📈 StockAlert</h1>
+        <h1 style={{ fontSize: '1.25rem', margin: 0 }}>📈 StockPing</h1>
       </header>
 
       <div className="animate-fade-in" style={{ flex: 1, padding: '4rem 2rem', textAlign: 'center' }}>

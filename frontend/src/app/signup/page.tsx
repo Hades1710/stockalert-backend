@@ -46,7 +46,7 @@ function SignupForm() {
     <div className="glass-panel" style={{ width: '100%', maxWidth: '400px' }}>
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Create Account</h2>
-        <p style={{ color: 'var(--text-secondary)' }}>Join the StockAlert community</p>
+        <p style={{ color: 'var(--text-secondary)' }}>Join the StockPing community</p>
       </div>
       
       <form action={signup} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

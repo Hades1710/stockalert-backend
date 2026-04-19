@@ -3,7 +3,7 @@ import './globals.css';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'StockAlert — Never Miss a Market Move',
+  title: 'StockPing — Never Miss a Market Move',
   description:
     'Real-time US stock alerts delivered instantly to your Telegram. Track price changes, breakouts, 52-week highs and more. Free tier available forever.',
 };
@@ -30,7 +30,7 @@ export default function RootLayout({
         }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', gap: '3rem', flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 300px' }}>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>📈 StockAlert</h3>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>📈 StockPing</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.6, maxWidth: '280px' }}>
                 Empowering traders with real-time institutional-grade stock alerts. Track movements like a pro.
               </p>
@@ -65,7 +65,7 @@ export default function RootLayout({
           
           <div style={{ maxWidth: '1200px', margin: '3rem auto 0 auto', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
             <p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
-              &copy; {new Date().getFullYear()} StockAlert. All rights reserved. Built with ❤️ for intelligent traders.
+              &copy; {new Date().getFullYear()} StockPing. All rights reserved. Built with ❤️ for intelligent traders.
             </p>
           </div>
         </footer>

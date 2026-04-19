@@ -12,7 +12,7 @@ export default async function LoginPage({
       <div className="glass-panel" style={{ width: '100%', maxWidth: '400px' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h2>Welcome Back</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Sign in to StockAlert</p>
+          <p style={{ color: 'var(--text-secondary)' }}>Sign in to StockPing</p>
         </div>
         
         <form style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

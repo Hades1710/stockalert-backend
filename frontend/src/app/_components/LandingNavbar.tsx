@@ -40,7 +40,7 @@ export default function LandingNavbar() {
           color: 'var(--text-primary)',
           letterSpacing: '-0.02em',
         }}>
-          StockAlert
+          StockPing
         </span>
       </Link>
 

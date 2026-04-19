@@ -15,7 +15,7 @@ export default function RefundsPage() {
           <div>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>1. 7-Day Money-Back Guarantee</h2>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              We offer a full refund within the first 7 days of your initial subscription if you are not satisfied with the StockAlert service. No questions asked.
+              We offer a full refund within the first 7 days of your initial subscription if you are not satisfied with the StockPing service. No questions asked.
             </p>
           </div>
 

@@ -321,7 +321,7 @@ export default function DashboardPage() {
         position: 'sticky', top: 0, zIndex: 100,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <h1 style={{ fontSize: '1.25rem', margin: 0 }}>📈 StockAlert</h1>
+          <h1 style={{ fontSize: '1.25rem', margin: 0 }}>📈 StockPing</h1>
           {token && <PollingPill token={token} />}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

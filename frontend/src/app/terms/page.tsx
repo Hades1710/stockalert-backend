@@ -15,21 +15,21 @@ export default function TermsPage() {
           <div>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>1. Acceptance of Terms</h2>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              By accessing and using StockAlert, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.
+              By accessing and using StockPing, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.
             </p>
           </div>
 
           <div>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>2. Description of Service</h2>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              StockAlert provides real-time stock alert notifications via Telegram. Our service includes price tracking, 52-week updates, and institutional data alerts across various subscription tiers.
+              StockPing provides real-time stock alert notifications via Telegram. Our service includes price tracking, 52-week updates, and institutional data alerts across various subscription tiers.
             </p>
           </div>
 
           <div>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>3. Market Data Disclaimer</h2>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Market data is provided by third-party APIs (Finnhub). While we strive for accuracy, StockAlert does not guarantee the timeliness or correctness of the data provided. All information is for informational purposes only and does not constitute financial advice.
+              Market data is provided by third-party APIs (Finnhub). While we strive for accuracy, StockPing does not guarantee the timeliness or correctness of the data provided. All information is for informational purposes only and does not constitute financial advice.
             </p>
           </div>
 
@@ -43,7 +43,7 @@ export default function TermsPage() {
           <div>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: 'var(--text-primary)' }}>5. Limitation of Liability</h2>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              StockAlert shall not be liable for any financial losses or damages resulting from the use of our alert service or reliance on market data.
+              StockPing shall not be liable for any financial losses or damages resulting from the use of our alert service or reliance on market data.
             </p>
           </div>
 

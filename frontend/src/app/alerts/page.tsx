@@ -84,7 +84,7 @@ export default function AlertsPage() {
           onClick={() => router.push('/dashboard')}
           style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '20px' }}
         >←</button>
-        <h1 style={{ fontSize: '1.1rem', margin: 0 }}>📈 StockAlert</h1>
+        <h1 style={{ fontSize: '1.1rem', margin: 0 }}>📈 StockPing</h1>
       </header>
 
       <div className="animate-fade-in" style={{ maxWidth: '680px', margin: '0 auto', padding: '2rem' }}>
