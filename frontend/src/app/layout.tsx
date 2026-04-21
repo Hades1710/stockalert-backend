@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Link from 'next/link';
+import FeedbackWidget from './_components/FeedbackWidget';
 
 export const metadata: Metadata = {
   title: 'StockPing — Never Miss a Market Move',
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <FeedbackWidget />
         <main className="animate-fade-in" style={{ flex: 1 }}>
           {children}
         </main>

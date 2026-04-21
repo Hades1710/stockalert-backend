@@ -177,6 +177,14 @@ export default function SettingsPage() {
 
           {/* Link / Reconnect */}
           <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1.25rem' }}>
+            {!telegramConnected && (
+              <div style={{ padding: '10px 14px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '16px' }}>🚀</span>
+                <p style={{ margin: 0, fontSize: '13px', color: '#60a5fa', fontWeight: 500, lineHeight: 1.4 }}>
+                  <strong>Limited time offer:</strong> The first 50 users to connect Telegram receive a FREE lifetime upgrade to the PRO tier!
+                </p>
+              </div>
+            )}
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
               {telegramConnected ? 'Update your Telegram Chat ID:' : 'Connect your Telegram to receive alerts:'}
             </p>

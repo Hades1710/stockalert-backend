@@ -17,7 +17,7 @@ const RULE_META: Record<string, { label: string; icon: string; unit: string; des
   analyst_upgrade: { label: 'Analyst Upgrades',    icon: '📈', unit: '', desc: 'Alert when a bank upgrades this stock' },
   insider_buying:  { label: 'Insider Trading',     icon: '🕵️', unit: '', desc: 'Alert when executives buy/sell shares' },
   earnings_alert:  { label: 'Earnings Upcoming',   icon: '📅', unit: 'Days', desc: 'Alert days before earnings report' },
-  breaking_news:   { label: 'Breaking News',       icon: '📰', unit: '', desc: 'Alert on major news catalysts' },
+  // breaking_news:   { label: 'Breaking News',       icon: '📰', unit: '', desc: 'Alert on major news catalysts' },
 }
 
 // ─── Inline editable threshold row ───────────────────────────────────
@@ -244,7 +244,17 @@ export default function StockDetailPage() {
 
         {/* Alert Rules */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <h3 style={{ marginBottom: '1rem', fontSize: '16px' }}>Alert Rules</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0, fontSize: '16px' }}>Alert Rules</h3>
+            <button 
+              onClick={() => router.push('/alerts-guide')}
+              style={{ background: 'none', border: '1px solid var(--border-light)', color: 'var(--text-secondary)', padding: '4px 10px', borderRadius: '999px', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+            >
+              📖 View Alerts Guide
+            </button>
+          </div>
           {rules.length === 0 ? (
             <div style={{ color: 'var(--text-muted)', fontSize: '14px', padding: '1rem 0' }}>
               No rules configured for this stock.

@@ -48,21 +48,37 @@ async def telegram_webhook(request: Request):
             .execute()
 
         # Save chat_id to user's profile
-        existing = supabase.table("profiles").select("id").eq("id", user_id).execute()
+        existing = supabase.table("profiles").select("id, tier").eq("id", user_id).execute()
+        
+        # Check promo eligibility
+        promo_used_res = supabase.table("profiles").select("*", count="exact").eq("telegram_enabled", True).execute()
+        promo_used = promo_used_res.count if promo_used_res.count is not None else 0
+        
         if existing.data:
-            supabase.table("profiles").update({
+            update_data = {
                 "telegram_chat_id": chat_id,
                 "telegram_enabled": True
-            }).eq("id", user_id).execute()
+            }
+            if promo_used < 50 and existing.data[0].get("tier") != "pro":
+                update_data["tier"] = "pro"
+                
+            supabase.table("profiles").update(update_data).eq("id", user_id).execute()
         else:
-            supabase.table("profiles").insert({
+            insert_data = {
                 "id": user_id,
                 "telegram_chat_id": chat_id,
                 "telegram_enabled": True
-            }).execute()
+            }
+            if promo_used < 50:
+                insert_data["tier"] = "pro"
+            supabase.table("profiles").insert(insert_data).execute()
 
         # Send confirmation
-        await send_telegram_alert(chat_id, "✅ <b>Telegram connected!</b>\n\nYou'll now receive StockAlert notifications here. Head back to the website to continue setup.")
+        success_msg = "✅ <b>Telegram connected!</b>\n\nYou'll now receive StockAlert notifications here. Head back to the website to continue setup."
+        if promo_used < 50 and (not existing.data or existing.data[0].get("tier") != "pro"):
+            success_msg += "\n\n🎉 <b>You've been upgraded to PRO for FREE as one of our first 50 users to connect!</b>"
+            
+        await send_telegram_alert(chat_id, success_msg)
         logger.info(f"Telegram verified for user {user_id} → chat_id {chat_id}")
 
     except Exception as e:

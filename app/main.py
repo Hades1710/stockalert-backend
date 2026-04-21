@@ -15,6 +15,7 @@ Architecture note:
 """
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from app.config import settings
 from app.routers import auth, watchlist, notifications, market, alerts, payments
 from app.routers import telegram_webhook
@@ -96,6 +97,39 @@ def polling_status():
         return {"status": "error", "message": "No heartbeat record found"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# ─── Public / Promo Endpoints ────────────────────────────────────────────────────
+@app.get("/promo/status")
+def promo_status():
+    """Returns the count of available promo spots."""
+    try:
+        # Count users who have telegram_enabled
+        count_res = supabase.table("profiles").select("id", count="exact").eq("telegram_enabled", True).execute()
+        current_count = count_res.count if hasattr(count_res, 'count') and count_res.count is not None else len(count_res.data)
+        
+        remaining = max(0, 50 - current_count)
+        return {"remaining": remaining}
+    except Exception as e:
+        logger.error(f"Error fetching promo status: {e}")
+        return {"remaining": 0}
+
+class FeedbackRequest(BaseModel):
+    type: str
+    message: str
+
+@app.post("/internal/feedback")
+def submit_feedback(data: FeedbackRequest):
+    """Stores user feedback from the frontend widget."""
+    try:
+        # Note: We aren't strictly enforcing user_id here so that unauthenticated landing page visitors can still drop feedback.
+        res = supabase.table("app_feedback").insert({
+            "type": data.type,
+            "message": data.message,
+        }).execute()
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Feedback insertion error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to submit feedback")
 
 # ─── Dev / Testing Endpoints ────────────────────────────────────────────────────
 @app.get("/test/market-data/{symbol}", tags=["Testing"])

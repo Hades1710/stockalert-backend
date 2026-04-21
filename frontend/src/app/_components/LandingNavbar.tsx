@@ -14,7 +14,7 @@ export default function LandingNavbar() {
 
   return (
     <header style={{
-      position: 'fixed',
+      position: 'sticky',
       top: 0,
       left: 0,
       right: 0,
@@ -26,8 +26,8 @@ export default function LandingNavbar() {
       justifyContent: 'space-between',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
-      background: scrolled ? 'rgba(11,14,20,0.92)' : 'rgba(11,14,20,0.3)',
-      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+      background: scrolled ? 'rgba(11,14,20,0.98)' : 'rgba(11,14,20,0.7)',
+      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.05)',
       transition: 'background 0.3s ease, border-color 0.3s ease',
     }}>
       {/* Logo */}

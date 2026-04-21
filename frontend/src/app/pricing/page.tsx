@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
+import PromoBanner from '../_components/PromoBanner'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -66,7 +67,7 @@ export default function PricingPage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header style={{
         padding: '1rem 2rem', borderBottom: '1px solid var(--border-light)',
-        background: 'rgba(11,14,20,0.8)', backdropFilter: 'blur(12px)',
+        background: 'rgba(11,14,20,0.95)', backdropFilter: 'blur(12px)',
         position: 'sticky', top: 0, zIndex: 100, display: 'flex', alignItems: 'center', gap: '1rem',
       }}>
         <button
@@ -75,6 +76,8 @@ export default function PricingPage() {
         >←</button>
         <h1 style={{ fontSize: '1.25rem', margin: 0 }}>📈 StockPing</h1>
       </header>
+      
+      <PromoBanner />
 
       <div className="animate-fade-in" style={{ flex: 1, padding: '4rem 2rem', textAlign: 'center' }}>
         <h2 style={{ fontSize: '3rem', margin: '0 0 1rem 0', fontFamily: 'var(--font-heading)', background: 'linear-gradient(to right, #ffffff, #a1a1aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -165,6 +168,7 @@ export default function PricingPage() {
               <li>🕵️‍♂️ <strong>Insider Trading Alerts</strong></li>
               <li>🏦 <strong>Analyst Upgrades</strong></li>
               <li>👑 Premium Support</li>
+              <li>🎁 <strong>FREE FOR FIRST 50 USERS</strong></li>
             </ul>
             {currentTier === 'pro' ? (
               <button disabled style={{ background: 'rgba(245,158,11,0.2)', color: '#fbbf24', border: '1px solid #fbbf24', padding: '14px', borderRadius: '8px', cursor: 'not-allowed', fontWeight: 800, fontSize: '1rem' }}>

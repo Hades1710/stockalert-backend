@@ -16,13 +16,26 @@ def link_telegram(request: TelegramLinkRequest, current_user: UserProfile = Depe
             "telegram_chat_id": request.chat_id,
             "telegram_enabled": True
         }
+        
+        # Check if they are eligible for the first-50 PRO promo
+        promo_used_res = supabase.table("profiles").select("*", count="exact").eq("telegram_enabled", True).execute()
+        promo_used = promo_used_res.count if promo_used_res.count is not None else 0
+        
+        # Only upgrade if they are not already pro
+        if promo_used < 50 and current_user.tier != "pro":
+            update_data["tier"] = "pro"
+
         res = supabase.table("profiles").update(update_data).eq("id", str(current_user.id)).execute()
         
         # If the profile doesn't exist yet, create it.
         if not res.data:
             supabase.table("profiles").insert({"id": str(current_user.id), **update_data}).execute()
             
-        return {"status": "success", "message": "Telegram successfully linked!"}
+        message = "Telegram successfully linked!"
+        if promo_used < 50 and current_user.tier != "pro":
+            message += " You got a FREE Pro upgrade!"
+            
+        return {"status": "success", "message": message}
     except Exception as e:
         logger.error(f"Error linking Telegram: {e}")
         raise HTTPException(status_code=500, detail=str(e))

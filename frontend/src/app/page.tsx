@@ -1,8 +1,10 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import LandingNavbar from './_components/LandingNavbar'
 import ScrollReveal from './_components/ScrollReveal'
+import PromoBanner from './_components/PromoBanner'
 
 // ─── Static data ────────────────────────────────────────────────────────────
 
@@ -122,7 +124,7 @@ const PRICING_TIERS = [
     border: 'rgba(245,158,11,0.5)',
     shadow: '0 0 24px rgba(245,158,11,0.1)',
     badge: null,
-    features: ['Unlimited Stocks', '1-minute Lightning Polling', 'Insider Trading Alerts', 'Analyst Upgrades', 'Premium Support'],
+    features: ['Unlimited Stocks', '1-minute Lightning Polling', 'Insider Trading Alerts', 'Analyst Upgrades', 'Premium Support', '🎁 FREE FOR FIRST 50 USERS'],
     cta: 'Go Pro',
     href: '/signup',
     ctaStyle: {
@@ -701,6 +703,7 @@ export default function LandingPage() {
   return (
     <>
       <LandingNavbar />
+      <PromoBanner />
 
       <main>
         <HeroSection />
